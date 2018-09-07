@@ -7,6 +7,10 @@ STEPS to use it:
 
 GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -a -installsuffix cgo -o doh_server *.go
 
+You need to get a valid HTTPS certificate (from Letsencrypt for example)
+
+Edit doh-server-docker.conf with the certificates keys
+
 docker build . -t doh:0.1
 
 docker run -tid --rm -p 443:443 --name doh doh:0.1
