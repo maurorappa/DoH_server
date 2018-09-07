@@ -113,8 +113,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Server", USER_AGENT)
-	//w.Header().Set("X-Powered-By", USER_AGENT)
+	w.Header().Set("Server", "DoH server")
 
 	if r.Form == nil {
 		const maxMemory = 32 << 20 // 32 MB
