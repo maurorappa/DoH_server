@@ -27,5 +27,13 @@ Tips for implementation:
 
  - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
  
+FAQ
+
+ - Can I use plain HTTP? No, by design you need HTTPS with a proper certificate 
+
+ - Shall I run as a service or as container? Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
+
+ - Do you think my code is crappy? Help me to write a better one!
+
 
 We all should be thankful forever to Let's Encrypt
