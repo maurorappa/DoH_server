@@ -34,7 +34,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	_ "net/http/pprof"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
