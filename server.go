@@ -236,7 +236,7 @@ func (s *Server) patchRootRD(req *DNSRequest) *DNSRequest {
 func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 	numServers := len(s.conf.Upstream)
 	rtt := time.Duration(0)
-	fmt.Printf("\tQuery number: %d\n",query_loop)
+	if s.conf.Verbose { fmt.Printf("\tQuery number: %d\n",query_loop) }
 	if query_loop <= 10 { // first 10 times I pick random dns
 		req.currentUpstream = s.conf.Upstream[rand.Intn(numServers)]
 	} else if query_loop > 10 && query_loop < 100 { // I use the fastest
