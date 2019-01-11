@@ -1,4 +1,4 @@
-FROM quay.io/prometheus/busybox:latest
+FROM busybox:latest
 RUN mkdir /srv
 COPY doh_server /srv/doh_server
 COPY doh-server-docker.conf /srv/doh-server.conf

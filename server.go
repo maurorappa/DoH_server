@@ -24,21 +24,25 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"github.com/gorilla/handlers"
+	"github.com/m13253/dns-over-https/json-dns"
+	"github.com/miekg/dns"
+	n "github.com/skarademir/naturalsort"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	_ "net/http/pprof"
-	"github.com/gorilla/handlers"
-	"github.com/m13253/dns-over-https/json-dns"
-	"github.com/miekg/dns"
-	n "github.com/skarademir/naturalsort"
 )
 
 type Server struct {
@@ -59,9 +63,10 @@ type DNSRequest struct {
 }
 
 var (
-	rtimes []string
+	rtimes     []string
 	query_loop int = 0
 )
+
 func NewServer(conf *config) (s *Server) {
 	s = &Server{
 		conf: conf,
@@ -90,11 +95,44 @@ func (s *Server) Start() error {
 	for _, addr := range s.conf.Listen {
 		go func(addr string) {
 			var err error
-			if s.conf.Cert != "" || s.conf.Key != "" {
-				err = http.ListenAndServeTLS(addr, s.conf.Cert, s.conf.Key, servemux)
-			} else {
-				err = http.ListenAndServe(addr, servemux)
+			certFile, err := ioutil.ReadFile(s.conf.Cert)
+			if err != nil {
+				log.Fatal(err)
 			}
+
+			block, _ := pem.Decode(certFile)
+			if block == nil {
+				log.Fatal("failed to decode PEM block containing public key")
+			}
+
+			// trim the bytes to actual length in call
+			cert, err := x509.ParseCertificate(block.Bytes)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("Certificate CN: %s\n", cert.Subject.CommonName)
+			fmt.Printf("Validity: Not before %s and ", cert.NotBefore.String())
+			fmt.Printf("Not after %s\n", cert.NotAfter.String())
+
+			cfg := &tls.Config{
+				MinVersion:               tls.VersionTLS12,
+				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+				PreferServerCipherSuites: true,
+				CipherSuites: []uint16{
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+				},
+			}
+			srv := &http.Server{
+				Addr:         addr,
+				Handler:      servemux,
+				TLSConfig:    cfg,
+				TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+			}
+			err = srv.ListenAndServeTLS(s.conf.Cert, s.conf.Key)
 			if err != nil {
 				log.Println(err)
 			}
@@ -236,12 +274,14 @@ func (s *Server) patchRootRD(req *DNSRequest) *DNSRequest {
 func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 	numServers := len(s.conf.Upstream)
 	rtt := time.Duration(0)
-	if s.conf.Verbose { fmt.Printf("\tQuery number: %d\n",query_loop) }
+	if s.conf.Verbose {
+		fmt.Printf("\tQuery number: %d\n", query_loop)
+	}
 	if query_loop <= 10 { // first 10 times I pick random dns
 		req.currentUpstream = s.conf.Upstream[rand.Intn(numServers)]
 	} else if query_loop > 10 && query_loop < 100 { // I use the fastest
 		sort.Sort(n.NaturalSort(rtimes))
-		dns := strings.Split(rtimes[0],"-")
+		dns := strings.Split(rtimes[0], "-")
 		req.currentUpstream = dns[1] //fastest
 	} else { // after 90 times, I reset and use random
 		query_loop = 0
