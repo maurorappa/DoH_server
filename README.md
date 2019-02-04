@@ -1,7 +1,20 @@
 # DoH_server
 DNS over HTTP2S server 
 
-Modified version of the server used in https://github.com/m13253/dns-over-https
+Inspired by https://github.com/m13253/dns-over-https
+
+# FAQs:
+
+ - Can I use plain HTTP? No, by design you need HTTPS with a proper certificate 
+
+ - Shall I run as a service or as container? Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
+
+ - Do you think my code is crappy? Help me to write a better one!
+
+# Tips for implementation:
+
+ - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
+
 
  # Steps to build a container:
 
@@ -24,17 +37,6 @@ Modified version of the server used in https://github.com/m13253/dns-over-https
  - instead of DNS roundrobin I implemented an primitive algorithm to use the fastest DNS server out of the specified pool and continually monitor which server is the fastest
 
  
-# FAQs:
-
- - Can I use plain HTTP? No, by design you need HTTPS with a proper certificate 
-
- - Shall I run as a service or as container? Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
-
- - Do you think my code is crappy? Help me to write a better one!
-
-# Tips for implementation:
-
- - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
 
 # Last notes: 
 
