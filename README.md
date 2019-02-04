@@ -5,9 +5,9 @@ Inspired by https://github.com/m13253/dns-over-https
 
 # FAQs:
 
- - Can I use plain HTTP? No, by design you need HTTPS with a proper certificate 
+ - Can I use plain HTTP?  No, by design you need HTTPS with a proper certificate 
 
- - Shall I run as a service or as container? Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
+ - Shall I run as a service or as container?  Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
 
  - Do you think my code is crappy? Help me to write a better one!
 
@@ -34,7 +34,7 @@ Inspired by https://github.com/m13253/dns-over-https
  
  - ability to Skip Ipv6 dns queries to speed up resolution (details here https://github.com/m13253/dns-over-https/pull/19)
 
- - instead of DNS roundrobin I implemented an primitive algorithm to use the fastest DNS server out of the specified pool and continually monitor which server is the fastest
+ - instead of DNS roundrobin I implemented a primitive algorithm to use the fastest DNS server out of the specified pool and continually monitor which server is the fastest
 
  
 
