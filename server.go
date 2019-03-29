@@ -81,6 +81,8 @@ func NewServer(conf *config) (s *Server) {
 		},
 		servemux: http.NewServeMux(),
 	}
+
+	s.servemux.HandleFunc("/stat", s.handlerFuncStat)
 	s.servemux.HandleFunc(conf.Path, s.handlerFunc)
 	fmt.Printf("Listening on %s...\n", conf.Listen)
 	return
@@ -148,6 +150,14 @@ func (s *Server) Start() error {
 	}
 	close(results)
 	return nil
+}
+
+func (s *Server) handlerFuncStat(w http.ResponseWriter, r *http.Request) {
+	reply := "Stats\n"
+	for k,v := range dns_stat {
+		reply = reply + k + ": " + strconv.Itoa(v) + ", "
+	}
+	w.Write([]byte(reply))
 }
 
 func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
@@ -302,6 +312,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 		}
 		replace(req.currentUpstream, int(rtt))
 		query_loop = query_loop + 1
+		dns_stat[req.currentUpstream]++
 		//for _, value := range rtimes {
 		//	fmt.Println(value)
 		//}

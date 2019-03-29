@@ -29,6 +29,8 @@ import (
 	"log"
 )
 
+var dns_stat   map[string]int
+
 func main() {
 	confPath := flag.String("conf", "doh-server.conf", "Configuration file")
 	verbose := flag.Bool("verbose", false, "Enable logging")
@@ -42,10 +44,14 @@ func main() {
 	if *verbose {
 		conf.Verbose = true
 	}
+	dns_stat = make(map[string]int)
+	for _,k := range conf.Upstream {
+		dns_stat[k] = 0
+	}
 
 name := `
       _
-     /X \
+     / \
    _------_
   /        \
  |          |
