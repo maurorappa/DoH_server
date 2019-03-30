@@ -154,6 +154,11 @@ func (s *Server) Start() error {
 
 func (s *Server) handlerFuncStat(w http.ResponseWriter, r *http.Request) {
 	reply := "Stats\n"
+	sort.Sort(n.NaturalSort(rtimes))
+	for _,v := range rtimes {
+		reply = reply +  v + ",\n"
+	}
+	reply = reply +  "\n\n"
 	for k,v := range dns_stat {
 		reply = reply + k + ": " + strconv.Itoa(v) + ", "
 	}
@@ -310,7 +315,8 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 		if s.conf.Verbose {
 			log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
 		}
-		replace(req.currentUpstream, int(rtt))
+		//replace(req.currentUpstream, int(rtt))
+		replace(req.currentUpstream, strings.Split(string(rtt.String()),".")[0])
 		query_loop = query_loop + 1
 		dns_stat[req.currentUpstream]++
 		//for _, value := range rtimes {
@@ -324,18 +330,18 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 	return req, err
 }
 
-func replace(dns string, rtt int) {
+func replace(dns string, rtt string) {
 	found := false
 	for k, value := range rtimes {
 		if strings.Contains(value, dns) {
 			dns := strings.Split(value, "-")
 			//fmt.Println(dns[1])
 			//fmt.Printf("found it,  %d %s\n",k, value)
-			rtimes[k] = strconv.Itoa(rtt) + "-" + dns[1]
+			rtimes[k] = rtt + "-" + dns[1]
 			found = true
 		}
 	}
 	if !found {
-		rtimes = append(rtimes, strconv.Itoa(rtt)+"-"+dns)
+		rtimes = append(rtimes, rtt+"-"+dns)
 	}
 }
