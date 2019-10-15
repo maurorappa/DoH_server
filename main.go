@@ -29,11 +29,11 @@ import (
 	"log"
 )
 
-var dns_stat   map[string]int
+var dns_stat map[string]int
 
 func main() {
-	confPath := flag.String("conf", "doh-server.conf", "Configuration file")
-	verbose := flag.Bool("verbose", false, "Enable logging")
+	confPath := flag.String("c", "doh-server.conf", "Configuration file")
+	verbose := flag.Bool("v", false, "Enable logging")
 	flag.Parse()
 
 	conf, err := loadConfig(*confPath)
@@ -45,11 +45,11 @@ func main() {
 		conf.Verbose = true
 	}
 	dns_stat = make(map[string]int)
-	for _,k := range conf.Upstream {
+	for _, k := range conf.Upstream {
 		dns_stat[k] = 0
 	}
 
-name := `
+	name := `
       _
      / \
    _------_
@@ -67,7 +67,7 @@ name := `
  |_____ |
 |_____/\/\
 /        \   `
-        fmt.Println(name)
+	fmt.Println(name)
 
 	server := NewServer(conf)
 	_ = server.Start()

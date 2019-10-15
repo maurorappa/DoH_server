@@ -28,6 +28,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/ReneKroon/ttlcache"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
@@ -65,7 +66,13 @@ type DNSRequest struct {
 var (
 	rtimes     []string
 	query_loop int = 0
+	dnscache   *ttlcache.Cache
 )
+
+func init() {
+	dnscache = ttlcache.NewCache()
+	defer dnscache.Close()
+}
 
 func NewServer(conf *config) (s *Server) {
 	s = &Server{
@@ -153,15 +160,17 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) handlerFuncStat(w http.ResponseWriter, r *http.Request) {
-	reply := "Stats\n"
+	reply := "Resolver Stats\n"
 	sort.Sort(n.NaturalSort(rtimes))
-	for _,v := range rtimes {
-		reply = reply +  v + ",\n"
+	for _, v := range rtimes {
+		reply = reply + v + ",\n"
 	}
-	reply = reply +  "\n\n"
-	for k,v := range dns_stat {
+	reply = reply + "\n\n"
+	for k, v := range dns_stat {
 		reply = reply + k + ": " + strconv.Itoa(v) + ", "
 	}
+	count := dnscache.Count()
+	reply = reply + "\n\nCached entries: " + strconv.Itoa(count)
 	w.Write([]byte(reply))
 }
 
@@ -210,6 +219,7 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req *DNSRequest
+	var err error
 	if contentType == "application/dns-json" {
 		req = s.parseRequestGoogle(w, r)
 	} else if contentType == "application/dns-message" {
@@ -231,11 +241,15 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	req = s.patchRootRD(req)
 	//fmt.Printf("Asking for :%s\n",req.request)
 
-	var err error
-	req, err = s.doDNSQuery(req)
-	if err != nil {
-		jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
-		return
+	//check if we have a cached result
+	dnsResult, exists := dnscache.Get(req.request.String())
+	if !exists {
+		dnsResult, err = s.doDNSQuery(req)
+		if err != nil {
+			jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
+			return
+		}
+		dnscache.SetWithTTL(req.request.String(), dnsResult, 60*time.Second)
 	}
 
 	if responseType == "application/json" {
@@ -302,10 +316,11 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 		query_loop = 0
 		req.currentUpstream = s.conf.Upstream[rand.Intn(numServers)]
 	}
+
 	for i := uint(0); i < s.conf.Tries; i++ {
 		if !s.conf.TCPOnly {
 			req.response, rtt, err = s.udpClient.Exchange(req.request, req.currentUpstream)
-			if err == dns.ErrTruncated {
+			if err != nil {
 				log.Println(err)
 				req.response, rtt, err = s.tcpClient.Exchange(req.request, req.currentUpstream)
 			}
@@ -316,7 +331,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 			log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
 		}
 		//replace(req.currentUpstream, int(rtt))
-		replace(req.currentUpstream, strings.Split(string(rtt.String()),".")[0])
+		replace(req.currentUpstream, strings.Split(string(rtt.String()), ".")[0])
 		query_loop = query_loop + 1
 		dns_stat[req.currentUpstream]++
 		//for _, value := range rtimes {
