@@ -78,7 +78,7 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		}
 	}
 
-	if s.conf.Verbose && len(msg.Question) > 0 {
+	if len(msg.Question) > 0 {
 		question := &msg.Question[0]
 		questionName := question.Name
 		questionClass := ""
@@ -101,7 +101,8 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 			}
 
 		}
-		fmt.Printf("%s - - [%s] \"%s %s %s\"\n", r.RemoteAddr, time.Now().Format("02/Jan/2006:15:04:05 -0700"), questionName, questionClass, questionType)
+		//fmt.Printf("%s - - [%s] \"%s %s %s\"\n", r.RemoteAddr, time.Now().Format("02/Jan/2006:15:04:05 -0700"), questionName, questionClass, questionType)
+		fmt.Printf("name:%s class:%s type:%s\"\n", questionName, questionClass, questionType)
 	}
 
 	transactionID := msg.Id

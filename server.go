@@ -28,7 +28,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/ReneKroon/ttlcache"
+	//"github.com/ReneKroon/ttlcache"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
@@ -66,12 +66,12 @@ type DNSRequest struct {
 var (
 	rtimes     []string
 	query_loop int = 0
-	dnscache   *ttlcache.Cache
+	//dnscache   *ttlcache.Cache
 )
 
 func init() {
-	dnscache = ttlcache.NewCache()
-	defer dnscache.Close()
+	//dnscache = ttlcache.NewCache()
+	//defer dnscache.Close()
 }
 
 func NewServer(conf *config) (s *Server) {
@@ -169,8 +169,8 @@ func (s *Server) handlerFuncStat(w http.ResponseWriter, r *http.Request) {
 	for k, v := range dns_stat {
 		reply = reply + k + ": " + strconv.Itoa(v) + ", "
 	}
-	count := dnscache.Count()
-	reply = reply + "\n\nCached entries: " + strconv.Itoa(count)
+	//count := dnscache.Count()
+	//reply = reply + "\n\nCached entries: " + strconv.Itoa(count)
 	w.Write([]byte(reply))
 }
 
@@ -239,19 +239,21 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req = s.patchRootRD(req)
-	//fmt.Printf("Asking for :%s\n",req.request)
-
+	//fmt.Printf("Asking for :%s\n",req.Msg[0].Question.Name)
+	dnsNeeded := req.request.Question[0].Name
 	//check if we have a cached result
-	dnsResult, exists := dnscache.Get(req.request.String())
-	if !exists {
-		dnsResult, err = s.doDNSQuery(req)
+	//dnsCached, exists := dnscache.Get(dnsNeeded)
+	//f !exists {
+		dnsResult, err := s.doDNSQuery(req)
+		fmt.Printf("dns replied: %q\n",dnsResult.response.String())
 		if err != nil {
 			jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
 			return
 		}
-		dnscache.SetWithTTL(req.request.String(), dnsResult, 60*time.Second)
-	}
-
+	//	dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
+	//}
+	fmt.Printf("asked for %s",dnsNeeded)
+	//req.response = &dns.Msg{dnsCached}
 	if responseType == "application/json" {
 		s.generateResponseGoogle(w, r, req)
 	} else if responseType == "application/dns-message" {
@@ -304,7 +306,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 	numServers := len(s.conf.Upstream)
 	rtt := time.Duration(0)
 	if s.conf.Verbose {
-		fmt.Printf("\tQuery number: %d\n", query_loop)
+	//	fmt.Printf("\tQuery number: %d\n", query_loop)
 	}
 	if query_loop <= 10 { // first 10 times I pick random dns
 		req.currentUpstream = s.conf.Upstream[rand.Intn(numServers)]
@@ -328,7 +330,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 			req.response, rtt, err = s.tcpClient.Exchange(req.request, req.currentUpstream)
 		}
 		if s.conf.Verbose {
-			log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
+	//		log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
 		}
 		//replace(req.currentUpstream, int(rtt))
 		replace(req.currentUpstream, strings.Split(string(rtt.String()), ".")[0])
