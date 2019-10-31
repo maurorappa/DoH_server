@@ -28,7 +28,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	//"github.com/ReneKroon/ttlcache"
+	"github.com/ReneKroon/ttlcache"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
@@ -66,12 +66,12 @@ type DNSRequest struct {
 var (
 	rtimes     []string
 	query_loop int = 0
-	//dnscache   *ttlcache.Cache
+	dnscache   *ttlcache.Cache
 )
 
 func init() {
-	//dnscache = ttlcache.NewCache()
-	//defer dnscache.Close()
+	dnscache = ttlcache.NewCache()
+	defer dnscache.Close()
 }
 
 func NewServer(conf *config) (s *Server) {
@@ -219,7 +219,6 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req *DNSRequest
-	var err error
 	if contentType == "application/dns-json" {
 		req = s.parseRequestGoogle(w, r)
 	} else if contentType == "application/dns-message" {
@@ -241,22 +240,25 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	req = s.patchRootRD(req)
 	//fmt.Printf("Asking for :%s\n",req.Msg[0].Question.Name)
 	dnsNeeded := req.request.Question[0].Name
+	fmt.Printf("asked for %s",dnsNeeded)
 	//check if we have a cached result
-	//dnsCached, exists := dnscache.Get(dnsNeeded)
-	//f !exists {
+	dnsCached, exists := dnscache.Get(dnsNeeded)
+	if !exists {
 		dnsResult, err := s.doDNSQuery(req)
 		fmt.Printf("dns replied: %q\n",dnsResult.response.String())
 		if err != nil {
 			jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
 			return
 		}
-	//	dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
-	//}
-	fmt.Printf("asked for %s",dnsNeeded)
-	//req.response = &dns.Msg{dnsCached}
+		dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
+	}
+	fmt.Printf("we have in cache %s",dnsCached)
+	//req.response = dns.RR(dnsCached)
 	if responseType == "application/json" {
+		fmt.Printf("Google mode")
 		s.generateResponseGoogle(w, r, req)
 	} else if responseType == "application/dns-message" {
+		fmt.Printf("IETF mode")
 		s.generateResponseIETF(w, r, req)
 	} else {
 		panic("Unknown response Content-Type")
