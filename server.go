@@ -26,9 +26,10 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	seed "crypto/rand"
 	"encoding/pem"
 	"fmt"
-	"github.com/ReneKroon/ttlcache"
+	//"github.com/ReneKroon/ttlcache"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
@@ -66,12 +67,13 @@ type DNSRequest struct {
 var (
 	rtimes     []string
 	query_loop int = 0
-	dnscache   *ttlcache.Cache
+	keys [][32]byte
+	//dnscache   *ttlcache.Cache
 )
 
 func init() {
-	dnscache = ttlcache.NewCache()
-	defer dnscache.Close()
+	//dnscache = ttlcache.NewCache()
+	//defer dnscache.Close()
 }
 
 func NewServer(conf *config) (s *Server) {
@@ -96,6 +98,13 @@ func NewServer(conf *config) (s *Server) {
 }
 
 func (s *Server) Start() error {
+	keys := make([][32]byte, 10)
+	stuff := make([]byte, 32)
+	for i := 0; i < 10; i++ {
+		_,_ = seed.Read(stuff)
+		fmt.Printf("key %d: %X\n",i,stuff)
+		copy(keys[i][:],stuff)
+	}
 	servemux := http.Handler(s.servemux)
 	if s.conf.Verbose {
 		servemux = handlers.CombinedLoggingHandler(os.Stdout, servemux)
@@ -123,6 +132,9 @@ func (s *Server) Start() error {
 			fmt.Printf("Certificate CN: %s\n", cert.Subject.CommonName)
 			fmt.Printf("Validity: Not before %s and ", cert.NotBefore.String())
 			fmt.Printf("Not after %s\n", cert.NotAfter.String())
+			rand.Seed(time.Now().UnixNano())
+			key := keys[rand.Intn(10)]
+			fmt.Printf("key used: %X\n",key)
 
 			cfg := &tls.Config{
 				MinVersion:               tls.VersionTLS12,
@@ -134,6 +146,8 @@ func (s *Server) Start() error {
 					tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 				},
+				//SessionTicketKey: keys[rand.Intn(10)],
+				SessionTicketKey: key,
 			}
 			srv := &http.Server{
 				Addr:         addr,
@@ -240,11 +254,13 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	req = s.patchRootRD(req)
 	//fmt.Printf("Asking for :%s\n",req.Msg[0].Question.Name)
 	dnsNeeded := req.request.Question[0].Name
-	fmt.Printf("asked for %s",dnsNeeded)
+	fmt.Printf("asked for %s\n",dnsNeeded)
 	//check if we have a cached result
+	s.doDNSQuery(req)
+	/*
 	dnsCached, exists := dnscache.Get(dnsNeeded)
+	dnsResult, err := s.doDNSQuery(req)
 	if !exists {
-		dnsResult, err := s.doDNSQuery(req)
 		fmt.Printf("dns replied: %q\n",dnsResult.response.String())
 		if err != nil {
 			jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
@@ -253,12 +269,11 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 		dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
 	}
 	fmt.Printf("we have in cache %s",dnsCached)
+	*/
 	//req.response = dns.RR(dnsCached)
 	if responseType == "application/json" {
-		fmt.Printf("Google mode")
 		s.generateResponseGoogle(w, r, req)
 	} else if responseType == "application/dns-message" {
-		fmt.Printf("IETF mode")
 		s.generateResponseIETF(w, r, req)
 	} else {
 		panic("Unknown response Content-Type")

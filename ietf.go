@@ -81,12 +81,14 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 	if len(msg.Question) > 0 {
 		question := &msg.Question[0]
 		questionName := question.Name
+		/*
 		questionClass := ""
 		if qclass, ok := dns.ClassToString[question.Qclass]; ok {
 			questionClass = qclass
 		} else {
 			questionClass = strconv.Itoa(int(question.Qclass))
 		}
+		*/
 		questionType := ""
 		if qtype, ok := dns.TypeToString[question.Qtype]; ok {
 			questionType = qtype
@@ -102,7 +104,7 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 
 		}
 		//fmt.Printf("%s - - [%s] \"%s %s %s\"\n", r.RemoteAddr, time.Now().Format("02/Jan/2006:15:04:05 -0700"), questionName, questionClass, questionType)
-		fmt.Printf("name:%s class:%s type:%s\"\n", questionName, questionClass, questionType)
+		fmt.Printf("name:%s addr:%s type:%s\n", questionName, r.RemoteAddr, questionType)
 	}
 
 	transactionID := msg.Id
@@ -146,7 +148,6 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 			opt.Option = append(opt.Option, edns0Subnet)
 		}
 	}
-
 	return &DNSRequest{
 		request:       msg,
 		transactionID: transactionID,
