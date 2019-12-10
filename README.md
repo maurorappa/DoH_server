@@ -1,7 +1,10 @@
 # DoH_server
 DNS over HTTP2S server 
 
+# Docker images available from: https://hub.docker.com/repository/docker/privatesurfing/doh
+
 Inspired by https://github.com/m13253/dns-over-https
+
 
 # FAQs:
 
@@ -16,22 +19,26 @@ Inspired by https://github.com/m13253/dns-over-https
  - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
 
 
- # Steps to build a container:
 
- - Grab all modules needed ```dep ensure```
+# Steps to build a container:
+
+ -  Grab all modules needed ```dep ensure```
 
  -  Build a static binary ```GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -a -installsuffix cgo -o doh_server *.go```
 
  -  You need to get a valid HTTPS certificate (from Letsencrypt for example)
 
- -  Edit doh-server-docker.conf with the certificates keys
+ -  Edit doh-server-docker.conf with the certificates details
 
- -  Build a minimal container ```docker build . -t doh:0.1```
+ -  Build a minimal container ```docker build . -t doh:local```
 
- -  Run it ```docker run -tid --rm -p 443:443 --name doh doh:0.1```
+ -  Run it ```docker run -tid --rm -p 443:443 -v /<path the the certs on the box>:/svc/ssl --name doh doh:local```
+
 
 # Enhancement to the original project:
- 
+
+ - use of the strongest TLS ciphers, random SessionTicket for every connection *
+
  - ability to Skip Ipv6 dns queries to speed up resolution (details here https://github.com/m13253/dns-over-https/pull/19)
 
  - instead of DNS roundrobin I implemented a primitive algorithm to use the fastest DNS server out of the specified pool and continually monitor which server is the fastest
@@ -40,6 +47,9 @@ Inspired by https://github.com/m13253/dns-over-https
 
 # Last notes: 
 
-- We all should be thankful forever to Let's Encrypt
+- get your certificates using Let's Encrypt
 
-- Best OS to run it: Devuan
+
+# References
+
+* https://blog.filippo.io/we-need-to-talk-about-session-tickets/ and https://blog.twitter.com/engineering/en_us/a/2013/forward-secrecy-at-twitter.html
