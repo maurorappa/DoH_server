@@ -38,6 +38,7 @@ type config struct {
 	Timeout  uint     `toml:"timeout"`
 	Tries    uint     `toml:"tries"`
 	TCPOnly  bool     `toml:"tcp_only"`
+	Allowed  []string `toml:"allowed"`
 	Upstream []string `toml:"upstream"`
 	Verbose  bool     `toml:"verbose"`
 }

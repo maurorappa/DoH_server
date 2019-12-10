@@ -1,7 +1,7 @@
 # DoH_server
 DNS over HTTP2S server 
 
-# Docker images available from: https://hub.docker.com/repository/docker/privatesurfing/doh
+# Docker images available: https://hub.docker.com/repository/docker/privatesurfing/doh
 
 Inspired by https://github.com/m13253/dns-over-https
 
@@ -13,6 +13,9 @@ Inspired by https://github.com/m13253/dns-over-https
  - Shall I run as a service or as container?  Being a service exposed over Internet, you should use a container to isolate from the OS, in case you want to run on the plain OS consider to use FireJail. 
 
  - Do you think my code is crappy? Help me to write a better one!
+
+ - Is it a secure 'container'? The server runs as unpriviledged user in a busybox image, nothing else is running, no outgoing connections other than dns queries
+ 
 
 # Tips for implementation:
 
@@ -44,12 +47,18 @@ Inspired by https://github.com/m13253/dns-over-https
  - instead of DNS roundrobin I implemented a primitive algorithm to use the fastest DNS server out of the specified pool and continually monitor which server is the fastest
 
  
+# ToDo
+
+ - write all test cases
+
 
 # Last notes: 
 
-- get your certificates using Let's Encrypt
+- get your certificates using Let's Encrypt!
 
 
 # References
 
 * https://blog.filippo.io/we-need-to-talk-about-session-tickets/ and https://blog.twitter.com/engineering/en_us/a/2013/forward-secrecy-at-twitter.html
+
+

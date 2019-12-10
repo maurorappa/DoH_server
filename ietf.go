@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -75,6 +76,22 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		return &DNSRequest{
 			errcode: 400,
 			errtext: fmt.Sprintf("DNS packet parse failure (%s)", err.Error()),
+		}
+	}
+
+	good := false
+	for _,networks := range s.conf.Allowed {
+		_, subnet, _ := net.ParseCIDR(networks)
+		dnsclient := net.ParseIP(r.RemoteAddr)
+		if subnet.Contains(dnsclient) {
+			good = true
+			break
+		}
+	}
+	if ! good {
+		return &DNSRequest{
+			errcode: 400,
+			errtext: fmt.Sprintf("IP not allowed to use this DNS"),
 		}
 	}
 
@@ -171,8 +188,6 @@ func (s *Server) generateResponseIETF(w http.ResponseWriter, r *http.Request, re
 	w.Header().Set("Last-Modified", now)
 	w.Header().Set("Vary", "Accept")
 
-	_ = s.patchFirefoxContentType(w, r, req)
-
 	if respJSON.HaveTTL {
 		if req.isTailored {
 			w.Header().Set("Cache-Control", "private, max-age="+strconv.Itoa(int(respJSON.LeastTTL)))
@@ -202,14 +217,3 @@ func (s *Server) patchDNSCryptProxyReqID(w http.ResponseWriter, r *http.Request,
 	return false
 }
 
-// Workaround a bug causing Firefox 61-62 to reject responses with Content-Type = application/dns-message
-func (s *Server) patchFirefoxContentType(w http.ResponseWriter, r *http.Request, req *DNSRequest) bool {
-	if strings.Contains(r.UserAgent(), "Firefox") && strings.Contains(r.Header.Get("Accept"), "application/dns-udpwireformat") && !strings.Contains(r.Header.Get("Accept"), "application/dns-message") {
-		//log.Println("Firefox 61-62 detected. Patching response.")
-		w.Header().Set("Content-Type", "application/dns-udpwireformat")
-		w.Header().Set("Vary", "Accept, User-Agent")
-		req.isTailored = true
-		return true
-	}
-	return false
-}

@@ -10,6 +10,7 @@ FROM busybox:latest
 RUN mkdir -p /srv/ssl
 COPY --from=builder /go/src/doh/doh_server /srv/doh_server
 COPY doh-server.conf /srv/doh-server.conf
+USER nobody
 
 EXPOSE     443
 ENTRYPOINT [ "/srv/doh_server" ]
