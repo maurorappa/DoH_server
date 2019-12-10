@@ -100,11 +100,13 @@ func NewServer(conf *config) (s *Server) {
 func (s *Server) Start() error {
 	keys := make([][32]byte, 10)
 	stuff := make([]byte, 32)
-	for i := 0; i < 10; i++ {
-		_,_ = seed.Read(stuff)
-		fmt.Printf("key %d: %X\n",i,stuff)
-		copy(keys[i][:],stuff)
-	}
+	if s.conf.Verbose {
+		for i := 0; i < 10; i++ {
+			_,_ = seed.Read(stuff)
+			fmt.Printf("key %d: %X\n",i,stuff)
+			copy(keys[i][:],stuff)
+		}
+	}	
 	servemux := http.Handler(s.servemux)
 	if s.conf.Verbose {
 		servemux = handlers.CombinedLoggingHandler(os.Stdout, servemux)
