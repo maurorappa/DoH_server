@@ -106,7 +106,7 @@ func (s *Server) Start() error {
 			fmt.Printf("key %d: %X\n",i,stuff)
 			copy(keys[i][:],stuff)
 		}
-	}	
+	}
 	servemux := http.Handler(s.servemux)
 	if s.conf.Verbose {
 		servemux = handlers.CombinedLoggingHandler(os.Stdout, servemux)
@@ -148,7 +148,6 @@ func (s *Server) Start() error {
 					tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 				},
-				//SessionTicketKey: keys[rand.Intn(10)],
 				SessionTicketKey: key,
 			}
 			srv := &http.Server{
