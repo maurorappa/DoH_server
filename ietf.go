@@ -89,6 +89,7 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		}
 	}
 	if ! good {
+		fmt.Printf("addr %s not allowed\n", r.RemoteAddr)
 		return &DNSRequest{
 			errcode: 400,
 			errtext: fmt.Sprintf("IP not allowed to use this DNS"),
