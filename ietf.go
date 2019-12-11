@@ -80,10 +80,12 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 	}
 
 	good := false
+	dnsclient := net.ParseIP(r.RemoteAddr)
 	for _,networks := range s.conf.Allowed {
 		_, subnet, _ := net.ParseCIDR(networks)
-		dnsclient := net.ParseIP(r.RemoteAddr)
+		fmt.Printf("subnet %q\n", subnet)
 		if subnet.Contains(dnsclient) {
+			fmt.Printf("addr %s found\n", r.RemoteAddr)
 			good = true
 			break
 		}
