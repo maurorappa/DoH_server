@@ -381,7 +381,7 @@ func replace(dns string, rtt string) {
 	}
 }
 
-func whitelisted(client string) (good bool) {
+func (s *Server) whitelisted(client string) (good bool) {
 	good = false
 	clientip := strings.Split(client, ":")
 	dnsclient := net.ParseIP(clientip)
