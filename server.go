@@ -175,17 +175,18 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) handlerFuncStat(w http.ResponseWriter, r *http.Request) {
-	reply := "Resolver Stats\n"
-	sort.Sort(n.NaturalSort(rtimes))
-	for _, v := range rtimes {
-		reply = reply + v + ",\n"
+	reply := ""
+	if s.whitelisted(r.RemoteAddr) {
+		reply = "Resolver Stats\n"
+		sort.Sort(n.NaturalSort(rtimes))
+		for _, v := range rtimes {
+			reply = reply + v + ",\n"
+		}
+		reply = reply + "\n\n"
+		for k, v := range dns_stat {
+			reply = reply + k + ": " + strconv.Itoa(v) + ", "
+		}
 	}
-	reply = reply + "\n\n"
-	for k, v := range dns_stat {
-		reply = reply + k + ": " + strconv.Itoa(v) + ", "
-	}
-	//count := dnscache.Count()
-	//reply = reply + "\n\nCached entries: " + strconv.Itoa(count)
 	w.Write([]byte(reply))
 }
 

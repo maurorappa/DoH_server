@@ -46,6 +46,13 @@ func (s *Server) parseRequestGoogle(w http.ResponseWriter, r *http.Request) *DNS
 			errtext: "Invalid argument value: \"name\"",
 		}
 	}
+	if ! s.whitelisted(r.RemoteAddr) {
+		fmt.Printf("addr %s not allowed\n", r.RemoteAddr)
+		return &DNSRequest{
+			errcode: 400,
+			errtext: fmt.Sprintf("IP not allowed to use this DNS"),
+		}
+	}
 	if punycode, err := idna.ToASCII(name); err == nil {
 		name = punycode
 	} else {

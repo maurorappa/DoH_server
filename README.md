@@ -3,7 +3,16 @@ DNS over HTTP2S server
 
 # Docker images available: https://hub.docker.com/repository/docker/privatesurfing/doh
 
-Inspired by https://github.com/m13253/dns-over-https
+Info on Firefox setup: 
+https://support.mozilla.org/en-US/kb/firefox-dns-over-https
+https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
+
+DoH consideration:
+https://blog.ungleich.ch/en-us/cms/blog/2018/08/04/mozillas-new-dns-resolution-is-dangerous/
+https://www.ispreview.co.uk/index.php/2019/09/firefox-says-no-dns-over-https-doh-by-default-for-uk.html
+ 
+
+This project was inspired by https://github.com/m13253/dns-over-https
 
 
 # FAQs:
@@ -14,13 +23,12 @@ Inspired by https://github.com/m13253/dns-over-https
 
  - Do you think my code is crappy? Help me to write a better one!
 
- - Is it a secure 'container'? The server runs as unpriviledged user in a busybox image, nothing else is running, no outgoing connections other than dns queries
+ - Is it a secure 'container'? The server, a static hardened Go bunary, runs as unpriviledged user in a busybox image; nothing else is running, no outgoing connections other than dns queries
  
 
 # Tips for implementation:
 
  - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
-
 
 
 # Steps to build a container:
@@ -49,13 +57,14 @@ Inspired by https://github.com/m13253/dns-over-https
  
 # ToDo
 
- - write all test cases
+ - write some test code 
 
 
 # Last notes: 
 
-- get your certificates using Let's Encrypt!
+- get your certificates using Let's Encrypt, see https://letsencrypt.org/getting-started/
 
+- there is no internal caching for dns entries, this would complicate the architecture and the dns can natively do that.
 
 # References
 
