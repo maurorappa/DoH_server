@@ -24,9 +24,9 @@
 package main
 
 import (
+	seed "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
-	seed "crypto/rand"
 	"encoding/pem"
 	"fmt"
 	//"github.com/ReneKroon/ttlcache"
@@ -67,7 +67,7 @@ type DNSRequest struct {
 var (
 	rtimes     []string
 	query_loop int = 0
-	keys [][32]byte
+	keys       [][32]byte
 	//dnscache   *ttlcache.Cache
 )
 
@@ -102,9 +102,9 @@ func (s *Server) Start() error {
 	stuff := make([]byte, 32)
 	if s.conf.Verbose {
 		for i := 0; i < 10; i++ {
-			_,_ = seed.Read(stuff)
-			fmt.Printf("key %d: %X\n",i,stuff)
-			copy(keys[i][:],stuff)
+			_, _ = seed.Read(stuff)
+			fmt.Printf("key %d: %X\n", i, stuff)
+			copy(keys[i][:], stuff)
 		}
 	}
 	servemux := http.Handler(s.servemux)
@@ -136,7 +136,7 @@ func (s *Server) Start() error {
 			fmt.Printf("Not after %s\n", cert.NotAfter.String())
 			rand.Seed(time.Now().UnixNano())
 			key := keys[rand.Intn(10)]
-			fmt.Printf("key used: %X\n",key)
+			fmt.Printf("key used: %X\n", key)
 
 			cfg := &tls.Config{
 				MinVersion:               tls.VersionTLS12,
@@ -255,21 +255,21 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	req = s.patchRootRD(req)
 	//fmt.Printf("Asking for :%s\n",req.Msg[0].Question.Name)
 	dnsNeeded := req.request.Question[0].Name
-	fmt.Printf("asked for %s\n",dnsNeeded)
+	fmt.Printf("asked for %s\n", dnsNeeded)
 	//check if we have a cached result
 	s.doDNSQuery(req)
 	/*
-	dnsCached, exists := dnscache.Get(dnsNeeded)
-	dnsResult, err := s.doDNSQuery(req)
-	if !exists {
-		fmt.Printf("dns replied: %q\n",dnsResult.response.String())
-		if err != nil {
-			jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
-			return
+		dnsCached, exists := dnscache.Get(dnsNeeded)
+		dnsResult, err := s.doDNSQuery(req)
+		if !exists {
+			fmt.Printf("dns replied: %q\n",dnsResult.response.String())
+			if err != nil {
+				jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
+				return
+			}
+			dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
 		}
-		dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
-	}
-	fmt.Printf("we have in cache %s",dnsCached)
+		fmt.Printf("we have in cache %s",dnsCached)
 	*/
 	//req.response = dns.RR(dnsCached)
 	if responseType == "application/json" {
@@ -324,7 +324,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 	numServers := len(s.conf.Upstream)
 	rtt := time.Duration(0)
 	if s.conf.Verbose {
-	//	fmt.Printf("\tQuery number: %d\n", query_loop)
+		//	fmt.Printf("\tQuery number: %d\n", query_loop)
 	}
 	if query_loop <= 10 { // first 10 times I pick random dns
 		req.currentUpstream = s.conf.Upstream[rand.Intn(numServers)]
@@ -348,7 +348,7 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 			req.response, rtt, err = s.tcpClient.Exchange(req.request, req.currentUpstream)
 		}
 		if s.conf.Verbose {
-	//		log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
+			//		log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
 		}
 		//replace(req.currentUpstream, int(rtt))
 		replace(req.currentUpstream, strings.Split(string(rtt.String()), ".")[0])
@@ -379,4 +379,18 @@ func replace(dns string, rtt string) {
 	if !found {
 		rtimes = append(rtimes, rtt+"-"+dns)
 	}
+}
+
+func whitelisted(client string) (good bool) {
+	good = false
+	clientip := strings.Split(client, ":")
+	dnsclient := net.ParseIP(clientip)
+	for _, networks := range s.conf.Allowed {
+		_, subnet, _ := net.ParseCIDR(networks)
+		if subnet.Contains(dnsclient) {
+			good = true
+			break
+		}
+	}
+	return good
 }

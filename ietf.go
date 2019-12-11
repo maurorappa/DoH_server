@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -79,19 +78,7 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		}
 	}
 
-	good := false
-	client := strings.Split(r.RemoteAddr, ":")
-	dnsclient := net.ParseIP(client[0])
-	for _,networks := range s.conf.Allowed {
-		_, subnet, _ := net.ParseCIDR(networks)
-		fmt.Printf("client %q, subnet %q\n", dnsclient, subnet)
-		if subnet.Contains(dnsclient) {
-			fmt.Printf("addr %s found\n", r.RemoteAddr)
-			good = true
-			break
-		}
-	}
-	if ! good {
+	if !whitelisted(r.RemoteAddr) {
 		fmt.Printf("addr %s not allowed\n", r.RemoteAddr)
 		return &DNSRequest{
 			errcode: 400,
@@ -103,12 +90,12 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		question := &msg.Question[0]
 		questionName := question.Name
 		/*
-		questionClass := ""
-		if qclass, ok := dns.ClassToString[question.Qclass]; ok {
-			questionClass = qclass
-		} else {
-			questionClass = strconv.Itoa(int(question.Qclass))
-		}
+			questionClass := ""
+			if qclass, ok := dns.ClassToString[question.Qclass]; ok {
+				questionClass = qclass
+			} else {
+				questionClass = strconv.Itoa(int(question.Qclass))
+			}
 		*/
 		questionType := ""
 		if qtype, ok := dns.TypeToString[question.Qtype]; ok {
@@ -220,4 +207,3 @@ func (s *Server) patchDNSCryptProxyReqID(w http.ResponseWriter, r *http.Request,
 	}
 	return false
 }
-
