@@ -35,7 +35,7 @@ Inspired by https://github.com/m13253/dns-over-https
 
  -  Build a minimal container ```docker build . -t doh:local```
 
- -  Run it ```docker run -tid --rm -p 443:443 -v /<path the the certs on the box>:/svc/ssl --name doh doh:local```
+ -  Run it ```docker run -d  -p 443:4443 -v /<path the the certs on the box>:/svc/ssl --name doh doh:local```
 
 
 # Enhancement to the original project:
