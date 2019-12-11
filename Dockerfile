@@ -4,7 +4,7 @@ COPY . /go/src/doh
 RUN wget -O /sbin/dep -q https://github.com/golang/dep/releases/download/v0.5.4/dep-linux-amd64 && chmod +x /sbin/dep
 RUN /sbin/dep ensure -add github.com/ReneKroon/ttlcache
 RUN /sbin/dep ensure
-RUN CGO_ENABLED=0 GOOS=linux go build -o doh_server *.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags '-extldflags "-static,-Wl,-z,noexecstack"' -o doh_server *.go
 
 FROM busybox:latest
 RUN mkdir -p /srv/ssl
@@ -12,6 +12,6 @@ COPY --from=builder /go/src/doh/doh_server /srv/doh_server
 COPY doh-server.conf /srv/doh-server.conf
 USER nobody
 
-EXPOSE     443
+EXPOSE     4443
 ENTRYPOINT [ "/srv/doh_server" ]
 CMD [ "-c", "/srv/doh-server.conf" ]
