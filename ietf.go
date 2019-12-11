@@ -78,7 +78,7 @@ func (s *Server) parseRequestIETF(w http.ResponseWriter, r *http.Request) *DNSRe
 		}
 	}
 
-	if !whitelisted(r.RemoteAddr) {
+	if ! s.whitelisted(r.RemoteAddr) {
 		fmt.Printf("addr %s not allowed\n", r.RemoteAddr)
 		return &DNSRequest{
 			errcode: 400,

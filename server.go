@@ -384,7 +384,7 @@ func replace(dns string, rtt string) {
 func (s *Server) whitelisted(client string) (good bool) {
 	good = false
 	clientip := strings.Split(client, ":")
-	dnsclient := net.ParseIP(clientip)
+	dnsclient := net.ParseIP(clientip[0])
 	for _, networks := range s.conf.Allowed {
 		_, subnet, _ := net.ParseCIDR(networks)
 		if subnet.Contains(dnsclient) {
