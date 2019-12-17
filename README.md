@@ -1,7 +1,8 @@
 # DoH_server
 DNS over HTTP2S server 
 
-# Docker images available: https://hub.docker.com/repository/docker/privatesurfing/doh
+# Docker images available here: 
+# https://hub.docker.com/repository/docker/privatesurfing/doh
 
 Info on Firefox setup: 
 
