@@ -4,11 +4,15 @@ DNS over HTTP2S server
 # Docker images available: https://hub.docker.com/repository/docker/privatesurfing/doh
 
 Info on Firefox setup: 
+
 https://support.mozilla.org/en-US/kb/firefox-dns-over-https
+
 https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
 DoH consideration:
+
 https://blog.ungleich.ch/en-us/cms/blog/2018/08/04/mozillas-new-dns-resolution-is-dangerous/
+
 https://www.ispreview.co.uk/index.php/2019/09/firefox-says-no-dns-over-https-doh-by-default-for-uk.html
  
 
