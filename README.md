@@ -1,5 +1,5 @@
 # DoH_server
-DNS over HTTP2S server 
+run you own DNS over HTTP2S server 
 
 # Docker images available here: 
 # https://hub.docker.com/repository/docker/privatesurfing/doh
