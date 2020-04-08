@@ -10,14 +10,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:8dfbaa09c5bb2df7ba84be3bb47d045f10a75502e708a1c15fec690dbe2e46fc"
-  name = "github.com/ReneKroon/ttlcache"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "e9e37b599534bbeb6ec45a6215cda104ff212b69"
-  version = "v1.6.0"
-
-[[projects]]
   digest = "1:664d37ea261f0fc73dd17f4a1f5f46d01fbb0b0d75f6375af064824424109b7d"
   name = "github.com/gorilla/handlers"
   packages = ["."]

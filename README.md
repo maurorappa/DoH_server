@@ -10,8 +10,6 @@ https://support.mozilla.org/en-US/kb/firefox-dns-over-https
 
 https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
- 
-
 
 # FAQs:
 
@@ -21,7 +19,7 @@ https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
  - Do you think my code is crappy? Help me to write a better one!
 
- - Is it a secure 'container'? The server, a static hardened Go bunary, runs as unpriviledged user in a busybox image; nothing else is running, no outgoing connections other than dns queries
+ - Is it a secure 'container'? The server, a static hardened Go binary, is the only process and it does not perform any outgoing connections other than dns queries
  
 
 # Tips for implementation:
@@ -31,18 +29,11 @@ https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
 # Steps to build a container:
 
- -  Grab all modules needed ```dep ensure```
-
- -  Build a static binary ```GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -a -installsuffix cgo -o doh_server *.go```
-
  -  You need to get a valid HTTPS certificate (from Letsencrypt for example)
 
- -  Edit doh-server-docker.conf with the certificates details
+ -  Edit docker-compose.yml to specify the path the the certs on the box and optioanlly the config file
 
- -  Build a minimal container ```docker build . -t doh:local```
-
- -  Run it ```docker run -d  -p 443:4443 -v /<path the the certs on the box>:/svc/ssl --name doh doh:local```
-
+ -  Run ```docker-compose up``
 
 # Enhancement to the original project
 (https://github.com/m13253/dns-over-https):
@@ -66,8 +57,7 @@ https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
 - get your certificates using Let's Encrypt, see https://letsencrypt.org/getting-started/
 
-- there is no internal caching for dns entries, this would complicate the architecture and the dns can natively do that.
-
+- I use Pi-hole (https://pi-hole.net/) as DNS server, so you block all Ads queries
 
 # References
 

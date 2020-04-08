@@ -29,7 +29,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	//"github.com/ReneKroon/ttlcache"
 	"github.com/gorilla/handlers"
 	"github.com/m13253/dns-over-https/json-dns"
 	"github.com/miekg/dns"
@@ -68,13 +67,7 @@ var (
 	rtimes     []string
 	query_loop int = 0
 	keys       [][32]byte
-	//dnscache   *ttlcache.Cache
 )
-
-func init() {
-	//dnscache = ttlcache.NewCache()
-	//defer dnscache.Close()
-}
 
 func NewServer(conf *config) (s *Server) {
 	s = &Server{
@@ -257,22 +250,7 @@ func (s *Server) handlerFunc(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("Asking for :%s\n",req.Msg[0].Question.Name)
 	dnsNeeded := req.request.Question[0].Name
 	fmt.Printf("asked for %s\n", dnsNeeded)
-	//check if we have a cached result
 	s.doDNSQuery(req)
-	/*
-		dnsCached, exists := dnscache.Get(dnsNeeded)
-		dnsResult, err := s.doDNSQuery(req)
-		if !exists {
-			fmt.Printf("dns replied: %q\n",dnsResult.response.String())
-			if err != nil {
-				jsonDNS.FormatError(w, fmt.Sprintf("DNS query failure (%s)", err.Error()), 503)
-				return
-			}
-			dnscache.SetWithTTL(dnsNeeded, dnsResult, 60*time.Second)
-		}
-		fmt.Printf("we have in cache %s",dnsCached)
-	*/
-	//req.response = dns.RR(dnsCached)
 	if responseType == "application/json" {
 		s.generateResponseGoogle(w, r, req)
 	} else if responseType == "application/dns-message" {
@@ -349,15 +327,11 @@ func (s *Server) doDNSQuery(req *DNSRequest) (resp *DNSRequest, err error) {
 			req.response, rtt, err = s.tcpClient.Exchange(req.request, req.currentUpstream)
 		}
 		if s.conf.Verbose {
-			//		log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
+			log.Printf("DNS server %s, request duration %s", req.currentUpstream, rtt.String())
 		}
-		//replace(req.currentUpstream, int(rtt))
 		replace(req.currentUpstream, strings.Split(string(rtt.String()), ".")[0])
 		query_loop = query_loop + 1
 		dns_stat[req.currentUpstream]++
-		//for _, value := range rtimes {
-		//	fmt.Println(value)
-		//}
 		if err == nil {
 			return req, nil
 		}
@@ -371,7 +345,6 @@ func replace(dns string, rtt string) {
 	for k, value := range rtimes {
 		if strings.Contains(value, dns) {
 			dns := strings.Split(value, "-")
-			//fmt.Println(dns[1])
 			//fmt.Printf("found it,  %d %s\n",k, value)
 			rtimes[k] = rtt + "-" + dns[1]
 			found = true

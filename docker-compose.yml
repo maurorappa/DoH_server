@@ -1,0 +1,12 @@
+version: '2.4'
+services:
+  doh:
+    build: .      
+    container_name: doh_server
+    ports:
+      - "4443:4443"
+    restart: on-failure   
+    ulimits:
+      nproc: 64 
+    volumes:
+       - "/root/web/doh:/svc:ro"        

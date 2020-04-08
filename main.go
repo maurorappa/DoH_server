@@ -32,7 +32,7 @@ import (
 var dns_stat map[string]int
 
 func main() {
-	confPath := flag.String("c", "/srv/doh-server.conf", "Configuration file")
+	confPath := flag.String("c", "/svc/doh-server.conf", "Configuration file")
 	verbose := flag.Bool("v", false, "Enable logging")
 	flag.Parse()
 
