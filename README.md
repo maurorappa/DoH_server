@@ -1,19 +1,31 @@
 # DoH_server
 run you own DNS over HTTP2S server 
 
-# to run quickly run:
-docker pull privatesurfing/doh
- 
-# Docker images available here: 
-# https://hub.docker.com/repository/docker/privatesurfing/doh
+to run quickly run it:
 
-Info on Firefox setup: 
+1- make `doh` directory
+
+2- copy `doh-server.conf` and edit to suit your needs
+
+3- copy certificate ad private key, for example if you used letsencrypt with certbot
+   `cp /etc/letsencrypt/live/doh.yapily.com/cert.pem doh/
+   cp /etc/letsencrypt/live/doh.yapily.com/privkey.pem doh/`
+   
+4- run docker `docker run -it -p 443:443 -v /home/mauro/doh:/svc:ro privatesurfing/doh`
+ 
+Docker images available here: 
+
+https://hub.docker.com/repository/docker/privatesurfing/doh
+
+Info on browser setup: 
 
 https://support.mozilla.org/en-US/kb/firefox-dns-over-https
 
 https://windowsloop.com/enable-dns-over-https-chrome/
 
 https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
+
+https://github.com/coredns/coredns/issues/1650
 
 
 # FAQs:
@@ -31,14 +43,6 @@ https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
  - I use the standard HTTPS port (443) to run this service so my Firefox can use it even behind a corporate firewall (even if having a proxy they can see my surfing activity anyway)
 
-
-# Steps to build a container:
-
- -  You need to get a valid HTTPS certificate (from Letsencrypt for example)
-
- -  Edit docker-compose.yml to specify the path the the certs on the box and optioanlly the config file
-
- -  Run ```docker-compose up``
 
 # Enhancement to the original project
 (https://github.com/m13253/dns-over-https):
