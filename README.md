@@ -7,7 +7,7 @@ to run quickly run it:
 
 2- copy `doh-server.conf` and edit to suit your needs
 
-3- copy certificate ad private key, for example if you used letsencrypt with certbot
+3- copy certificate ad private key, for example if you used Letsencrypt with certbot
    `cp /etc/letsencrypt/live/doh.yapily.com/cert.pem doh/
    cp /etc/letsencrypt/live/doh.yapily.com/privkey.pem doh/`
    
@@ -26,6 +26,8 @@ https://windowsloop.com/enable-dns-over-https-chrome/
 https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
 https://github.com/coredns/coredns/issues/1650
+
+https://pypi.org/project/doh-cli/ 
 
 
 # FAQs:
@@ -60,13 +62,6 @@ https://github.com/coredns/coredns/issues/1650
 # ToDo
 
  - write some test code 
-
-
-# Last notes: 
-
-- get your certificates using Let's Encrypt, see https://letsencrypt.org/getting-started/
-
-- I use Pi-hole (https://pi-hole.net/) as DNS server, so you block all Ads queries
 
 # References
 
