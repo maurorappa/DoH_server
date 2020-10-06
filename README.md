@@ -1,12 +1,17 @@
 # DoH_server
 run you own DNS over HTTP2S server 
 
+# to run quickly run:
+docker pull privatesurfing/doh
+ 
 # Docker images available here: 
 # https://hub.docker.com/repository/docker/privatesurfing/doh
 
 Info on Firefox setup: 
 
 https://support.mozilla.org/en-US/kb/firefox-dns-over-https
+
+https://windowsloop.com/enable-dns-over-https-chrome/
 
 https://daniel.haxx.se/blog/2018/06/03/inside-firefoxs-doh-engine/
 
